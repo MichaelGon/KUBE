@@ -1,0 +1,37 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: journal-test-pod
+  labels:
+    app: journal-system
+    tier: testing
+spec:
+  containers:
+  - name: journal-container
+    image: journal-service:latest
+    imagePullPolicy: Never
+    ports:
+    - containerPort: 5000
+      name: http
+    env:
+    - name: LOG_SEVERITY
+      valueFrom:
+        configMapKeyRef:
+          name: journal-config
+          key: LOG_SEVERITY
+    - name: SERVICE_PORT
+      valueFrom:
+        configMapKeyRef:
+          name: journal-config
+          key: SERVICE_PORT
+    - name: GREETING
+      valueFrom:
+        configMapKeyRef:
+          name: journal-config
+          key: GREETING
+    volumeMounts:
+    - name: journal-storage
+      mountPath: /application/journal
+  volumes:
+  - name: journal-storage
+    emptyDir: {}
