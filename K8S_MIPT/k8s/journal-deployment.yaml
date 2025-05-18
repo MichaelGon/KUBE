@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: journal-deployment
+  labels:
+    app: journal-system
+    tier: production
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: journal-system
+      tier: production
+  template:
+    metadata:
+      labels:
+        app: journal-system
+        tier: production
+    spec:
+      containers:
+      - name: journal-service
+        image: journal-service:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 5000
+          name: http
+        env:
+        - name: LOG_SEVERITY
+          valueFrom:
+            configMapKeyRef:
+              name: journal-config
+              key: LOG_SEVERITY
+        - name: SERVICE_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: journal-config
+              key: SERVICE_PORT
+        - name: GREETING
+          valueFrom:
+            configMapKeyRef:
+              name: journal-config
+              key: GREETING
+        volumeMounts:
+        - name: journal-storage
+          mountPath: /application/journal
+        readinessProbe:
+          httpGet:
+            path: /status
+            port: 5000
+          initialDelaySeconds: 3
+          periodSeconds: 10
+      volumes:
+      - name: journal-storage
+        emptyDir: {}

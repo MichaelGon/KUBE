@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: journal-config
+  labels:
+    app: journal-system
+data:
+  LOG_SEVERITY: "INFO"
+  SERVICE_PORT: "5000"
+  GREETING: "Welcome to the custom app"

@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: journal-service
+  labels:
+    app: journal-system
+spec:
+  selector:
+    app: journal-system
+    tier: production
+  ports:
+  - port: 80
+    targetPort: 5000
+    protocol: TCP
+    name: http
+  type: ClusterIP

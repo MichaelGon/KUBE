@@ -1,0 +1,45 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: journal-archiver
+  labels:
+    app: journal-system
+    component: backup
+spec:
+  schedule: "*/10 * * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: backup-processor
+            image: alpine:3.16
+            command:
+            - /bin/sh
+            - -c
+            - |
+              apk add --no-cache curl tar
+              
+              mkdir -p /workspace/journals
+              echo "Получение данных журналов..."
+              curl -s http://journal-service/logs > /workspace/journals/data.log
+              
+              timestamp=$(date +%Y%m%d-%H%M%S)
+              archive_name="journals-${timestamp}.tar.gz"
+              echo "Создание архива: ${archive_name}"
+              tar -czf /backups/${archive_name} -C /workspace journals
+              
+              echo "Архив создан в: /backups/${archive_name}"
+              ls -la /backups/
+            volumeMounts:
+            - name: workspace
+              mountPath: /workspace
+            - name: backup-storage
+              mountPath: /backups
+          restartPolicy: OnFailure
+          volumes:
+          - name: workspace
+            emptyDir: {}
+          - name: backup-storage
+            persistentVolumeClaim:
+              claimName: journal-archive-pvc
